@@ -1,0 +1,2 @@
+# Load the Dolby feature properties from vendor/build.prop.
+set_prop(vendor_init, vendor_dolby_prop)

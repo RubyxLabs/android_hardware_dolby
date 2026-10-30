@@ -10,4 +10,5 @@ type vendor_dolby_file, data_file_type, file_type;
 allow hal_dms_default vendor_dolby_file:dir rw_dir_perms;
 allow hal_dms_default vendor_dolby_file:file create_file_perms;
 
-get_prop(hal_dms_default, vendor_dolby_prop)
+# DMS also updates the Dolby runtime control properties.
+set_prop(hal_dms_default, vendor_dolby_prop)

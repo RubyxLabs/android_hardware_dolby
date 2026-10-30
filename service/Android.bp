@@ -1,0 +1,35 @@
+// SPDX-FileCopyrightText: 2026 Aeron-Aeron
+// SPDX-License-Identifier: Apache-2.0
+
+cc_binary {
+    name: "vendor.dolby.media.c2@1.2-service",
+    vendor: true,
+    compile_multilib: "64",
+    relative_install_path: "hw",
+    defaults: ["libcodec2-hidl-defaults@1.2"],
+    srcs: ["service.cpp"],
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+    ],
+    shared_libs: [
+        "libavservices_minijail",
+        "libbase",
+        "libbinder",
+        "libcodec2_store_dolby",
+        "liblog",
+        "libutils",
+    ],
+    init_rc: ["vendor.dolby.media.c2@1.2-service.rc"],
+    vintf_fragments: ["vendor.dolby.media.c2@1.2-service.xml"],
+    required: ["vendor.dolby.media.c2-seccomp_policy"],
+}
+
+prebuilt_etc {
+    name: "vendor.dolby.media.c2-seccomp_policy",
+    vendor: true,
+    src: "seccomp_policy/codec2-arm64.policy",
+    filename: "vendor.dolby.media.c2.policy",
+    sub_dir: "seccomp_policy",
+}

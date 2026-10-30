@@ -120,6 +120,9 @@ fun ModernDolbySettingsScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.error
                         )
+                        TextButton(onClick = viewModel::loadSettings) {
+                            Text(stringResource(R.string.app_profiles_retry))
+                        }
                     }
                 }
             }

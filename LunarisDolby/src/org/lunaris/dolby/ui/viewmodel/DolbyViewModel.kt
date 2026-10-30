@@ -35,6 +35,11 @@ class DolbyViewModel(application: Application) : AndroidViewModel(application) {
         loadSettings()
         observeSpeakerState()
         observeProfileChanges()
+        viewModelScope.launch {
+            repository.effectAvailable.collect { available ->
+                if (available && !isCleared) loadSettings()
+            }
+        }
     }
     
     private fun observeSpeakerState() {
@@ -69,6 +74,7 @@ class DolbyViewModel(application: Application) : AndroidViewModel(application) {
         
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                repository.ensureReady()
                 val enabled = repository.getDolbyEnabled()
                 val profile = repository.getCurrentProfile()
                 val bandMode = repository.getBandMode()

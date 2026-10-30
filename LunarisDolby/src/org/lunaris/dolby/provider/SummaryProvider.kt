@@ -14,7 +14,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import org.lunaris.dolby.R
-import org.lunaris.dolby.data.DolbyRepository
+import org.lunaris.dolby.DolbyConstants
 
 private const val KEY_DOLBY = "dolby"
 private const val META_DATA_PREFERENCE_SUMMARY = "com.android.settings.summary"
@@ -56,18 +56,19 @@ class SummaryProvider : ContentProvider() {
 
     private fun getDolbySummary(): String {
         val context = context ?: return ""
-        val repository = DolbyRepository(context)
-        
-        if (!repository.getDolbyEnabled()) {
+        // Settings reads the configured state without allocating an audio effect.
+        val prefs = context.getSharedPreferences("dolby_prefs", android.content.Context.MODE_PRIVATE)
+        if (!prefs.getBoolean(DolbyConstants.PREF_ENABLE,
+                context.resources.getBoolean(R.bool.dolby_enabled_by_default))) {
             return context.getString(R.string.dolby_off)
         }
-        
-        val profile = repository.getCurrentProfile()
         val profiles = context.resources.getStringArray(R.array.dolby_profile_entries)
         val profileValues = context.resources.getStringArray(R.array.dolby_profile_values)
+        val profile = prefs.getString(DolbyConstants.PREF_PROFILE, "0")
+            ?.takeIf { it in profileValues } ?: "0"
         
         return try {
-            val index = profileValues.indexOf(profile.toString())
+            val index = profileValues.indexOf(profile)
             val profileName = if (index != -1) profiles[index] else context.getString(R.string.dolby_unknown)
             context.getString(R.string.dolby_on_with_profile, profileName)
         } catch (e: Exception) {

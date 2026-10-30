@@ -71,6 +71,11 @@ class EqualizerViewModel(application: Application) : AndroidViewModel(applicatio
         DolbyConstants.dlog(TAG, "ViewModel initialized")
         loadEqualizer()
         observeProfileChanges()
+        viewModelScope.launch {
+            repository.effectAvailable.collect { available ->
+                if (available && !isCleared) loadEqualizer()
+            }
+        }
     }
     
     private fun observeProfileChanges() {
@@ -90,6 +95,7 @@ class EqualizerViewModel(application: Application) : AndroidViewModel(applicatio
         
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                repository.ensureReady()
                 currentProfile = repository.getCurrentProfile()
                 currentBandMode = repository.getBandMode()
                 val bandGains = repository.getEqualizerGains(currentProfile, currentBandMode)

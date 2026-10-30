@@ -10,11 +10,14 @@ import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.PowerManager
 import android.util.Log
 import org.lunaris.dolby.DolbyConstants
 import org.lunaris.dolby.R
@@ -30,6 +33,8 @@ class AppProfileMonitorService : Service() {
     private lateinit var appProfileManager: AppProfileManager
     private lateinit var dolbyRepository: DolbyRepository
     private lateinit var audioManager: AudioManager
+    private lateinit var powerManager: PowerManager
+    private var receiverRegistered = false
     private val lastPackageName = AtomicReference<String?>(null)
     private var originalProfile: Int = -1
     private var isMonitoring = false
@@ -39,9 +44,23 @@ class AppProfileMonitorService : Service() {
 
     private val checkForegroundAppRunnable = object : Runnable {
         override fun run() {
+            if (!isMonitoring || !powerManager.isInteractive) return
             checkForegroundApp()
-            if (isMonitoring) {
+            if (isMonitoring && powerManager.isInteractive) {
                 handler.postDelayed(this, CHECK_INTERVAL)
+            }
+        }
+    }
+
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            handler.removeCallbacks(checkForegroundAppRunnable)
+            synchronized(this@AppProfileMonitorService) {
+                pendingSwitchRunnable?.let { switchHandler.removeCallbacks(it) }
+                pendingSwitchRunnable = null
+            }
+            if (intent.action == Intent.ACTION_SCREEN_ON && isMonitoring && powerManager.isInteractive) {
+                handler.post(checkForegroundAppRunnable)
             }
         }
     }
@@ -51,6 +70,12 @@ class AppProfileMonitorService : Service() {
         appProfileManager = AppProfileManager(this)
         dolbyRepository = DolbyRepository(this)
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        powerManager = getSystemService(PowerManager::class.java)
+        registerReceiver(screenReceiver, IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_SCREEN_ON)
+        }, Context.RECEIVER_NOT_EXPORTED)
+        receiverRegistered = true
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -59,7 +84,10 @@ class AppProfileMonitorService : Service() {
                 captureOriginalProfile()
                 startMonitoring()
             }
-            ACTION_STOP_MONITORING -> stopMonitoring()
+            ACTION_STOP_MONITORING -> {
+                stopMonitoring()
+                stopSelf()
+            }
             else -> {
                 val prefs = getSharedPreferences("dolby_prefs", Context.MODE_PRIVATE)
                 if (prefs.getBoolean(PREF_MONITORING_ENABLED, false)) {
@@ -70,7 +98,7 @@ class AppProfileMonitorService : Service() {
                 }
             }
         }
-        return START_STICKY
+        return if (isMonitoring) START_STICKY else START_NOT_STICKY
     }
 
     private fun captureOriginalProfile() {
@@ -93,7 +121,7 @@ class AppProfileMonitorService : Service() {
         if (!isMonitoring) {
             isMonitoring = true
             DolbyConstants.dlog(TAG, "Started monitoring foreground app (original profile: $originalProfile)")
-            handler.post(checkForegroundAppRunnable)
+            if (powerManager.isInteractive) handler.post(checkForegroundAppRunnable)
         }
     }
 
@@ -148,6 +176,7 @@ class AppProfileMonitorService : Service() {
     }
 
     private fun checkForegroundApp() {
+        if (!powerManager.isInteractive) return
         try {
             val prefs = getSharedPreferences("dolby_prefs", Context.MODE_PRIVATE)
             val headphoneOnlyMode = prefs.getBoolean("app_profile_headphone_only", false)
@@ -172,6 +201,7 @@ class AppProfileMonitorService : Service() {
                 pendingSwitchRunnable = Runnable {
                     synchronized(this) {
                         try {
+                            if (!powerManager.isInteractive) return@Runnable
                             if (headphoneOnlyMode && !isHeadphoneConnected()) {
                                 DolbyConstants.dlog(TAG, "Headphones disconnected, aborting profile switch")
                                 return@Runnable
@@ -229,7 +259,8 @@ class AppProfileMonitorService : Service() {
         val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val currentTime = System.currentTimeMillis()
         
-        val usageEvents = usageStatsManager.queryEvents(currentTime - 1000, currentTime)
+        // Cover the whole polling interval; the previous 1 s window missed half the events.
+        val usageEvents = usageStatsManager.queryEvents(currentTime - CHECK_INTERVAL - 500, currentTime)
         val event = UsageEvents.Event()
         
         var lastPackage: String? = null
@@ -271,6 +302,12 @@ class AppProfileMonitorService : Service() {
         super.onDestroy()
         DolbyConstants.dlog(TAG, "Service destroyed")
         stopMonitoring()
+        handler.removeCallbacksAndMessages(null)
+        switchHandler.removeCallbacksAndMessages(null)
+        if (receiverRegistered) {
+            unregisterReceiver(screenReceiver)
+            receiverRegistered = false
+        }
         dolbyRepository.close()
         hasOriginalProfile = false
     }

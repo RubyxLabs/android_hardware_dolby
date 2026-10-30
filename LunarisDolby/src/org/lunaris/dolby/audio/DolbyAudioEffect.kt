@@ -6,11 +6,15 @@
 package org.lunaris.dolby.audio
 
 import android.media.audiofx.AudioEffect
+import android.os.SystemClock
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.lunaris.dolby.DolbyConstants
 import org.lunaris.dolby.DolbyConstants.DsParam
 import java.util.UUID
 
-class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
+private class NativeDolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
     EFFECT_TYPE_NULL, EFFECT_TYPE_DAP, priority, audioSession
 ) {
 
@@ -18,7 +22,7 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
         get() = getIntParam(EFFECT_PARAM_ENABLE) == 1
         set(value) {
             setIntParam(EFFECT_PARAM_ENABLE, if (value) 1 else 0)
-            enabled = value
+            checkParameterStatus(setEnabled(value))
         }
 
     var profile: Int
@@ -33,13 +37,13 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
         int32ToByteArray(param, buf, 0)
         int32ToByteArray(1, buf, 4)
         int32ToByteArray(value, buf, 8)
-        checkStatus(setParameter(EFFECT_PARAM_CPDP_VALUES, buf))
+        checkParameterStatus(setParameter(EFFECT_PARAM_CPDP_VALUES, buf))
     }
 
     private fun getIntParam(param: Int): Int {
         val buf = ByteArray(12)
         int32ToByteArray(param, buf, 0)
-        checkStatus(getParameter(EFFECT_PARAM_CPDP_VALUES + param, buf))
+        checkParameterStatus(getParameter(EFFECT_PARAM_CPDP_VALUES + param, buf))
         return byteArrayToInt32(buf).also {
             DolbyConstants.dlog(TAG, "getIntParam($param): $it")
         }
@@ -59,7 +63,7 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
         int32ToByteArray(profile, buf, 8)
         int32ToByteArray(param.id, buf, 12)
         int32ArrayToByteArray(values, buf, 16)
-        checkStatus(setParameter(EFFECT_PARAM_CPDP_VALUES, buf))
+        checkParameterStatus(setParameter(EFFECT_PARAM_CPDP_VALUES, buf))
     }
 
     fun setDapParameter(param: DsParam, enable: Boolean, profile: Int = this.profile) =
@@ -73,8 +77,15 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
         val length = param.length
         val buf = ByteArray((length + 2) * 4)
         val p = (param.id shl 16) + (profile shl 8) + EFFECT_PARAM_GET_PROFILE_PARAMETER
-        checkStatus(getParameter(p, buf))
+        checkParameterStatus(getParameter(p, buf))
         return byteArrayToInt32Array(buf, length)
+    }
+
+    private fun checkParameterStatus(status: Int) {
+        if (status == ERROR_DEAD_OBJECT || status == ERROR_NO_INIT) {
+            throw EffectUnavailableException()
+        }
+        checkStatus(status)
     }
 
     fun getDapParameterBool(param: DsParam, profile: Int = this.profile): Boolean =
@@ -130,5 +141,125 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
             }
             return dst
         }
+    }
+}
+
+private class EffectUnavailableException : IllegalStateException("Dolby audio service is unavailable")
+
+/** One native engine per process/session; clients own lightweight, closeable leases. */
+class DolbyAudioEffect(priority: Int, audioSession: Int) : AutoCloseable {
+    private val key = EngineKey(priority, audioSession)
+    private val state = synchronized(lock) {
+        states.getOrPut(key) { EngineState() }.also { it.clients++ }
+    }
+    private var released = false
+
+    val availability: StateFlow<Boolean> = state.available.asStateFlow()
+    val isCreated: Boolean get() = synchronized(lock) { state.engine != null }
+
+    fun ensureReady(): Long = withEngine { state.generation }
+    fun hasControl(): Boolean = synchronized(lock) {
+        !released && state.engine?.let { runCatching { it.hasControl() }.getOrDefault(false) } == true
+    }
+
+    var dsOn: Boolean
+        get() = withEngine { it.dsOn }
+        set(value) { withEngine { it.dsOn = value } }
+
+    var profile: Int
+        get() = withEngine { it.profile }
+        set(value) { withEngine { it.profile = value } }
+
+    fun resetProfileSpecificSettings(profile: Int = this.profile) =
+        withEngine { it.resetProfileSpecificSettings(profile) }
+
+    fun setDapParameter(param: DsParam, values: IntArray, profile: Int = this.profile) =
+        withEngine { it.setDapParameter(param, values, profile) }
+
+    fun setDapParameter(param: DsParam, enable: Boolean, profile: Int = this.profile) =
+        withEngine { it.setDapParameter(param, enable, profile) }
+
+    fun setDapParameter(param: DsParam, value: Int, profile: Int = this.profile) =
+        withEngine { it.setDapParameter(param, value, profile) }
+
+    fun getDapParameter(param: DsParam, profile: Int = this.profile): IntArray =
+        withEngine { it.getDapParameter(param, profile) }
+
+    fun getDapParameterBool(param: DsParam, profile: Int = this.profile): Boolean =
+        withEngine { it.getDapParameterBool(param, profile) }
+
+    fun getDapParameterInt(param: DsParam, profile: Int = this.profile): Int =
+        withEngine { it.getDapParameterInt(param, profile) }
+
+    private fun <T> withEngine(block: (NativeDolbyAudioEffect) -> T): T = synchronized(lock) {
+        check(!released) { "Dolby effect client is closed" }
+        val existing = state.engine
+        var engine = existing
+        if (existing != null && !runCatching { existing.hasControl() }.getOrDefault(false)) {
+            invalidateEngine()
+            engine = null
+        }
+        if (engine == null) {
+            check(SystemClock.elapsedRealtime() >= state.retryAfter) { "Dolby effect is unavailable" }
+            try {
+                val created = NativeDolbyAudioEffect(key.priority, key.session)
+                engine = created
+                check(created.hasControl()) { "Dolby effect control is unavailable" }
+                state.engine = created
+                state.generation++
+                state.available.value = true
+            } catch (e: RuntimeException) {
+                runCatching { engine?.release() }
+                state.retryAfter = SystemClock.elapsedRealtime() + RETRY_DELAY_MS
+                state.available.value = false
+                throw e
+            }
+        }
+        val active = checkNotNull(engine)
+        try {
+            block(active)
+        } catch (e: RuntimeException) {
+            if (e is EffectUnavailableException ||
+                !runCatching { active.hasControl() }.getOrDefault(false)) {
+                invalidateEngine()
+                state.retryAfter = SystemClock.elapsedRealtime() + RETRY_DELAY_MS
+            }
+            throw e
+        }
+    }
+
+    private fun invalidateEngine() {
+        runCatching { state.engine?.release() }
+        state.engine = null
+        state.available.value = false
+    }
+
+    fun release() {
+        synchronized(lock) {
+            if (!released) {
+                released = true
+                state.clients--
+                if (state.clients == 0) {
+                    invalidateEngine()
+                    states.remove(key)
+                }
+            }
+        }
+    }
+
+    override fun close() = release()
+
+    private data class EngineKey(val priority: Int, val session: Int)
+    private class EngineState {
+        var engine: NativeDolbyAudioEffect? = null
+        var clients = 0
+        var generation = 0L
+        var retryAfter = 0L
+        val available = MutableStateFlow(false)
+    }
+    private companion object {
+        const val RETRY_DELAY_MS = 1000L
+        val lock = Any()
+        val states = mutableMapOf<EngineKey, EngineState>()
     }
 }

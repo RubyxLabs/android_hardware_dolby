@@ -1,2 +1,5 @@
-allow mediacodec hal_dms_hwservice:hwservice_manager find;
-binder_call(mediacodec, hal_dms_default)
+# Dolby Codec2 obtains shared configuration from DMS and registers callbacks.
+hal_client_domain(mediacodec, hal_dms)
+binder_call(hal_dms_server, mediacodec)
+
+get_prop(mediacodec, vendor_dolby_prop)

@@ -9,6 +9,7 @@ import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import android.provider.Settings
 import org.lunaris.dolby.DolbyConstants
 import org.lunaris.dolby.data.AppProfileManager
 import org.lunaris.dolby.data.DolbyRepository
@@ -38,7 +39,16 @@ class DolbyNotificationListener : NotificationListenerService() {
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
         DolbyConstants.dlog(TAG, "NotificationListener disconnected")
-        requestRebind(android.content.ComponentName(this, DolbyNotificationListener::class.java))
+        val component = android.content.ComponentName(this, DolbyNotificationListener::class.java)
+        val enabled = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+            .orEmpty().split(':').contains(component.flattenToString())
+        if (enabled) {
+            try {
+                requestRebind(component)
+            } catch (e: RuntimeException) {
+                Log.w(TAG, "Notification listener could not reconnect", e)
+            }
+        }
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
@@ -59,7 +69,8 @@ class DolbyNotificationListener : NotificationListenerService() {
         try {
             val prefs = getSharedPreferences("dolby_prefs", MODE_PRIVATE)
             val savedProfile = prefs.getString(DolbyConstants.PREF_PROFILE, "0")?.toIntOrNull() ?: 0
-            val enabled = prefs.getBoolean(DolbyConstants.PREF_ENABLE, false)
+            val enabled = prefs.getBoolean(DolbyConstants.PREF_ENABLE,
+                resources.getBoolean(org.lunaris.dolby.R.bool.dolby_enabled_by_default))
             DolbyConstants.dlog(TAG, "Initializing Dolby - enabled: $enabled, profile: $savedProfile")
             if (enabled) {
                 dolbyRepository.setCurrentProfile(savedProfile)
@@ -95,6 +106,7 @@ class DolbyNotificationListener : NotificationListenerService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        if (::dolbyRepository.isInitialized) dolbyRepository.close()
         DolbyConstants.dlog(TAG, "NotificationListener destroyed")
     }
 

@@ -170,6 +170,9 @@ fun ModernEqualizerScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.error
                         )
+                        TextButton(onClick = viewModel::loadEqualizer) {
+                            Text(stringResource(R.string.app_profiles_retry))
+                        }
                     }
                 }
             }

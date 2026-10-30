@@ -4,6 +4,7 @@
      SPDX-License-Identifier: Apache-2.0
 -->
 <resources>
+    <string name="dolby_unavailable">Dolby is temporarily unavailable. Try again shortly.</string>
 
     <!-- Expressive UI -->
     <string name="dolby_credits">Credits</string>

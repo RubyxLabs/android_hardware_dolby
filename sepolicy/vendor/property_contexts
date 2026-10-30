@@ -1,0 +1,6 @@
+ro.vendor.dolby.dax.version u:object_r:vendor_dolby_prop:s0 exact string
+ro.vendor.audio.dolby.dax.support u:object_r:vendor_dolby_prop:s0 exact bool
+ro.vendor.audio.dolby.surround.enable u:object_r:vendor_dolby_prop:s0 exact bool
+ro.vendor.audio.dolby.spatial.xml u:object_r:vendor_dolby_prop:s0 exact bool
+vendor.audio.dolby.ds2.enabled u:object_r:vendor_dolby_prop:s0 exact bool
+vendor.audio.dolby.ds2.hardbypass u:object_r:vendor_dolby_prop:s0 exact bool

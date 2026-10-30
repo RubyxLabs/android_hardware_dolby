@@ -1,0 +1,2 @@
+# Dolby configuration belongs to vendor; framework clients may read it.
+vendor_restricted_prop(vendor_dolby_prop)

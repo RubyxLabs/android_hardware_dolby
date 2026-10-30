@@ -52,6 +52,12 @@ class DeviceStateManager(private val context: Context) {
     }
 
     fun saveSnapshot(deviceKey: String, repository: DolbyRepository) {
+        try {
+            repository.ensureReady()
+        } catch (e: RuntimeException) {
+            DolbyConstants.dlog(TAG, "Dolby unavailable; retaining snapshot for $deviceKey")
+            return
+        }
         val profile = repository.getCurrentProfile()
         val prefs = getDevicePrefs(deviceKey)
         val editor = prefs.edit()
@@ -111,12 +117,20 @@ class DeviceStateManager(private val context: Context) {
             return false
         }
 
+        try {
+            repository.ensureReady()
+        } catch (e: RuntimeException) {
+            DolbyConstants.dlog(TAG, "Dolby unavailable; deferring snapshot for $deviceKey")
+            return false
+        }
+
         return try {
             val enabled = prefs.getBoolean(KEY_DOLBY_ENABLED, true)
-            val profile = prefs.getInt(KEY_PROFILE, 0)
+            val requestedProfile = prefs.getInt(KEY_PROFILE, 0)
 
             repository.setDolbyEnabled(enabled)
-            repository.setCurrentProfile(profile)
+            repository.setCurrentProfile(requestedProfile)
+            val profile = repository.getCurrentProfile()
 
             repository.setIeqPreset(profile, prefs.getInt(KEY_IEQ, 0))
 
@@ -166,8 +180,7 @@ class DeviceStateManager(private val context: Context) {
             true
         } catch (e: Exception) {
             DolbyConstants.dlog(TAG,
-                "Failed to restore snapshot for $deviceKey: ${e.message} — discarding")
-            clearSnapshot(deviceKey)
+                "Failed to restore snapshot for $deviceKey: ${e.message}")
             false
         }
     }

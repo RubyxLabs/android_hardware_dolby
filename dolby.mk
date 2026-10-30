@@ -1,75 +1,23 @@
-#
-# Copyright (C) 2022 FlamingoOS Project
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+# SPDX-FileCopyrightText: 2022 FlamingoOS Project
+# SPDX-FileCopyrightText: 2026 Aeron-Aeron
+# SPDX-License-Identifier: Apache-2.0
 
-# Dolby path
 DOLBY_PATH := hardware/dolby
 
-# Soong Namespace
-PRODUCT_SOONG_NAMESPACES += \
-   $(DOLBY_PATH)
-
-# SEPolicy
+PRODUCT_SOONG_NAMESPACES += $(DOLBY_PATH)
 BOARD_VENDOR_SEPOLICY_DIRS += $(DOLBY_PATH)/sepolicy/vendor
-
-# HIDL
+SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS += $(DOLBY_PATH)/sepolicy/public
+SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS += $(DOLBY_PATH)/sepolicy/private
 DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE += $(DOLBY_PATH)/configs/vintf/dolby_framework_matrix.xml
-DEVICE_MANIFEST_FILE += \
-    $(DOLBY_PATH)/configs/vintf/vendor.dolby.hardware.dms@2.0-service.xml \
-    $(DOLBY_PATH)/configs/vintf/vendor.dolby.media.c2@1.0-service.xml
-
-# Build codec2 packages
-PRODUCT_PACKAGES += \
-    libavservices_minijail.vendor \
-    libcodec2_hidl@1.2.vendor \
-    libstagefright_foundation-v33 \
-    libcodec2_soft_common.vendor
-
-# Configs
-PRODUCT_COPY_FILES += \
-    $(DOLBY_PATH)/configs/dax/dax-default.xml:$(TARGET_COPY_OUT_VENDOR)/etc/dolby/dax-default.xml \
-    $(DOLBY_PATH)/configs/media/media_codecs_dolby_audio.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_dolby_audio.xml
-
-# Dolby
-PRODUCT_VENDOR_PROPERTIES += \
-    ro.vendor.dolby.dax.version=DAX3_3.7.0.8_r1 \
-    ro.audio.spatializer_enabled=true \
-    ro.vendor.audio.dolby.dax.support=true \
-    ro.vendor.audio.dolby.surround.enable=true \
-    ro.audio.spatializer_transaural_enabled_default=false \
-    vendor.audio.dolby.ds2.enabled=false \
-    vendor.audio.dolby.ds2.hardbypass=false
-
-# LunarisDolby
-PRODUCT_PACKAGES += \
-    LunarisDolby
-
-# Init
-PRODUCT_PACKAGES += \
-    init.dolby.rc
-
-# Proprietary-files
-PRODUCT_COPY_FILES += \
-    $(DOLBY_PATH)/proprietary/vendor/etc/init/vendor.dolby.hardware.dms@2.0-service.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/vendor.dolby.hardware.dms@2.0-service.rc \
-    $(DOLBY_PATH)/proprietary/vendor/etc/init/vendor.dolby.media.c2@1.0-service.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/vendor.dolby.media.c2@1.0-service.rc
 
 PRODUCT_PACKAGES += \
-    vendor.dolby.hardware.dms@2.0-impl \
-    vendor.dolby.hardware.dms@2.0 \
+    LunarisDolby \
+    init.dolby.rc \
+    android.hardware.audio.service.rubyx \
+    android.hardware.audio.effect-service.dolby \
+    android.hardware.audio.effect@7.0-impl:64 \
     vendor.dolby.hardware.dms@2.0-service \
-    vendor.dolby.media.c2@1.0-service \
+    vendor.dolby.media.c2@1.2-service \
     libcodec2_soft_ac4dec \
     libcodec2_soft_ddpdec \
     libcodec2_soft_dolby \
@@ -83,5 +31,26 @@ PRODUCT_PACKAGES += \
     libswdap \
     libswgamedap \
     libswspatializer \
-    libswvqe 
+    libswvqe \
+    vendor.dolby.hardware.dms@2.0 \
+    vendor.dolby.hardware.dms@2.0-impl \
+    libstagefright_foundation-v33.vendor
 
+PRODUCT_COPY_FILES += \
+    $(DOLBY_PATH)/configs/audio/audio_effects.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_effects.xml \
+    $(DOLBY_PATH)/configs/dax/dax-default.xml:$(TARGET_COPY_OUT_VENDOR)/etc/dolby/dax-default.xml \
+    $(DOLBY_PATH)/configs/dax/dax-default.xml:$(TARGET_COPY_OUT_ODM)/etc/dolby/dax-default.xml \
+    $(DOLBY_PATH)/configs/media/media_codecs_dolby_audio.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_dolby_audio.xml
+
+# Enable framework discovery of the actual 64-bit Spatializer effect.
+PRODUCT_SYSTEM_EXT_PROPERTIES += \
+    ro.audio.spatializer_enabled=true \
+    ro.audio.spatializer_transaural_enabled_default=false
+
+PRODUCT_VENDOR_PROPERTIES += \
+    ro.vendor.dolby.dax.version=DAX3_3.7.0.8_r1 \
+    ro.vendor.audio.dolby.dax.support=true \
+    ro.vendor.audio.dolby.surround.enable=true \
+    ro.vendor.audio.dolby.spatial.xml=false \
+    vendor.audio.dolby.ds2.enabled=false \
+    vendor.audio.dolby.ds2.hardbypass=false

@@ -1,43 +1,98 @@
-Xiaomi Dolby
-==============
+Dolby audio for Ruby
+===================
 
-Getting Started
----------------
-For dolby media codecs to work add this line in your media codecs config (should be in vendor partition) and make sure your device supports c2 codecs. :-
+This tree selects LunarisDolby, Pong's DAP tuning and the complete 64-bit
+DAX3_3.7.0.8_r1 backend, including its real Android Spatializer and Codec2
+AC-3, E-AC-3/JOC and AC-4 decoders. The pinned upstream is
+[Pong Development](https://github.com/Pong-Development/hardware_dolby) at
+`75c39aca2d6f3392519d65da0e6823217c8297ad`.
+All 16 native libraries and the DMS executable retain their upstream bytes;
+`proprietary/provenance.json` records their SHA-256 identities.
 
-```bash
-<Include href="media_codecs_dolby_audio.xml" />
-```
+Integration
+-----------
 
-To build, add the dolby effects in your device's audio effects config then inherit the dolby config by adding this in your device's makefile :-
+Inherit `hardware/dolby/dolby.mk` and include
+`media_codecs_dolby_audio.xml` from the device's vendor Codec2 XML. Remove
+duplicate device Dolby modules, app, XML tuning and policy. DMS and the
+source Codec2 host install their own init and VINTF fragments. The Codec2
+store uses HIDL 1.2 instance `default1`, alongside the existing MediaTek store.
+The host uses current HAL headers instead of the upstream prebuilt wrapper.
+The existing Lineage `libstagefright_foundation-v33.vendor` compatibility
+module is used without modifying framework sources.
 
-```bash
-$(call inherit-product, hardware/dolby/dolby.mk)
-```
+MediaTek's primary HAL and microphone preprocessing remain in one 32-bit
+process. `android.hardware.audio.service.rubyx` retains the stock core,
+SoundTrigger and Bluetooth registration paths and exposes a composite
+`IEffectsFactory/default`. Only the four known Dolby software-insert UUIDs
+are forwarded to the 64-bit `IEffectsFactory/dolby` companion. Other effect
+objects and raw primary-HAL effect IDs stay local. Remote IEffect Binder
+objects are returned directly, so PCM buffers and FMQs reach the companion
+without a second processing proxy. Companion death restarts the core HAL
+and AudioFlinger through the normal init recovery path.
 
-Now, moving hidl definitions in manifest to device trees is completely absurd so stop overriding manifest in your device trees an example for such would be :-
+Both effect implementation architectures are required. The extra `dolby`
+instance must be included in the device manifest and framework compatibility
+matrix; the provided modules and makefile do this. Append device matrix
+paths with `+=` so they retain this matrix. Keep the transferred public,
+private and vendor Dolby SELinux policy together.
 
-Changing these in BoardConfig makefile of your device tree:-
+The device audio policy must expose software Spatializer output profiles
+and routes. HIDL 7.0 uses the exact FAST + DEEP_BUFFER flag combination;
+current AudioPolicy maps it to SPATIALIZER, then maps it back at the HAL
+boundary. Ruby's profiles use a stereo hardware sink; AudioFlinger supplies
+the multichannel mixer input to the Spatializer. A2DP has a separate profile
+in the device's copy of the Bluetooth policy. Normal outputs remain present.
 
-```bash
-DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE :=
-```
-And
+The shared effects XML retains normal effects and AEC/NS/AGC and adds the
+real Spatializer UUID. `libdlbvol` ships as upstream does; its offload volume
+listeners are deliberately not registered or delegated as software effects.
+Dolby OMX implementations are removed. Compatibility aliases name the
+Codec2 decoders and do not install an OMX service.
 
-```bash
-DEVICE_MANIFEST_FILE :=
-```
+Tuning and controller
+---------------------
 
-To:-
+The Pong DAX file is installed to both vendor and ODM because DMS prefers
+ODM when that path exists. Device-specific Xiaomi DAX files are removed.
+The Spatializer uses its compiled generic profiles with
+`ro.vendor.audio.dolby.spatial.xml=false`; no absent optional XML or different
+device identity is advertised. Speaker transaural spatialization defaults
+off. Hardware identity and existing user data are preserved.
 
-```bash
-DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE +=
-```
-And
+Lunaris owns the controller UI. Its process shares a lazily created native
+effect across repository clients, handles initialization failure, restores
+saved settings after reconnection and closes clients with their lifecycle.
+Settings summaries allocate no native effect. Initial enable defaults to
+true; a saved user choice wins. Invalid saved profiles fall back to profile
+0. Only explicitly saved controls override Pong's profile tuning. Optional
+app-profile polling stops while the screen is off.
 
-```bash
-DEVICE_MANIFEST_FILE +=
-```
+Validation
+----------
 
-The only change done above is changing := symbol to += so that manifest can't be overriden from device tree in BoardConfig makefile.
+Static source, XML, blob identity, native symbol and dependency checks do
+not establish successful build or playback. No build is run by this change.
+The maintainer must verify on a new build:
 
+1. Core32, effects64, DMS and Codec2 `default1` register and stay alive.
+   There is one controller and one owner for each service/configuration.
+2. Codec2 enumerates and actually decodes all four MIME types, including
+   multichannel JOC. The MediaTek video store remains available.
+3. `dumpsys media.audio_policy`, `media.audio_flinger` and `audio` show the
+   Spatializer effect, output profile and active route. Test wired/USB and
+   Bluetooth A2DP separately. Check buffer transport and underruns.
+4. Lunaris opens, profiles/EQ/toggles work, and boot, service recovery and a
+   dirty upgrade preserve usable state. Test calls and microphone AEC/NS/AGC.
+5. Apple Music exposes Atmos and actually selects an Atmos track on the
+   intended route. Capture logs and codec/Spatializer dumps during playback.
+
+The decoder still rejects its internal Atmos Music processing profile 4.
+This is a separate namespace from Lunaris/DMS profile 4. It is not bypassed
+or relabeled. Whether Apple Music requests that internal mode, and whether
+its eligibility logic accepts this device, remain runtime questions. Do not
+report an Atmos badge or working Atmos playback based on XML/properties alone.
+
+The earlier multilib candidate and its ARM32 stack-unwind repair are retained
+in backup history. That affected library and repair tool are not shipped by
+this complete Pong64 integration.

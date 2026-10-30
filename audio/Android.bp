@@ -1,0 +1,48 @@
+// SPDX-FileCopyrightText: 2026 Aeron-Aeron
+// SPDX-License-Identifier: Apache-2.0
+
+cc_defaults {
+    name: "dolby_audio_service_defaults",
+    vendor: true,
+    relative_install_path: "hw",
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+    ],
+    shared_libs: [
+        "android.hardware.audio.common@7.0",
+        "android.hardware.audio.effect@7.0",
+        "libbinder",
+        "libcutils",
+        "libhidlbase",
+        "liblog",
+        "libutils",
+    ],
+}
+
+cc_binary {
+    name: "android.hardware.audio.service.rubyx",
+    defaults: ["dolby_audio_service_defaults"],
+    compile_multilib: "32",
+    overrides: ["android.hardware.audio.service"],
+    srcs: [
+        "core-service.cpp",
+        "EffectsFactoryProxy.cpp",
+    ],
+    shared_libs: [
+        "libbinder_ndk",
+        "libhardware",
+    ],
+    header_libs: ["libhardware_headers"],
+    init_rc: ["android.hardware.audio.service.rubyx.rc"],
+}
+
+cc_binary {
+    name: "android.hardware.audio.effect-service.dolby",
+    defaults: ["dolby_audio_service_defaults"],
+    compile_multilib: "64",
+    srcs: ["effects-service.cpp"],
+    init_rc: ["android.hardware.audio.effect-service.dolby.rc"],
+    vintf_fragments: ["android.hardware.audio.effect-service.dolby.xml"],
+}

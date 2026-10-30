@@ -1,0 +1,85 @@
+{
+  "repository": "https://github.com/Pong-Development/hardware_dolby",
+  "revision": "75c39aca2d6f3392519d65da0e6823217c8297ad",
+  "package_version": "DAX3_3.7.0.8_r1",
+  "architecture": "ARM64",
+  "files": [
+    {
+      "path": "proprietary/vendor/bin/hw/vendor.dolby.hardware.dms@2.0-service",
+      "sha256": "9be9e9a7da25834ecf6f9ec9aa63e7eb686b8e368784436cd4c5b8484d08a3fe"
+    },
+    {
+      "path": "proprietary/vendor/etc/init/vendor.dolby.hardware.dms@2.0-service.rc",
+      "sha256": "4e51845631d8f9765761892a5a01a883ebc3c21a9227c251969356c9b60f9d52"
+    },
+    {
+      "path": "proprietary/vendor/lib64/libcodec2_soft_ac4dec.so",
+      "sha256": "1f285a5f27362629cb3689e483e9a73e58b128bd9773355f8aa813982e6ae502"
+    },
+    {
+      "path": "proprietary/vendor/lib64/libcodec2_soft_ddpdec.so",
+      "sha256": "b81d25317f8ee904e685b738e34d1ec4230e349f8de23d828c48b84ff96d46c1"
+    },
+    {
+      "path": "proprietary/vendor/lib64/libcodec2_soft_dolby.so",
+      "sha256": "11d8237bf7617bcd9244a17979a44f11935d793f0e0b2b077eed12b0fe95bd7d"
+    },
+    {
+      "path": "proprietary/vendor/lib64/libcodec2_store_dolby.so",
+      "sha256": "2bbc2dbaa5f05dde330b44df405f5435e5c7dd43237ce5b164e09aec2d10580e"
+    },
+    {
+      "path": "proprietary/vendor/lib64/libdapparamstorage.so",
+      "sha256": "9924d30657b41edf6171b0a05edcfdffab6ac123b4a027d6c9f7468ba142ae64"
+    },
+    {
+      "path": "proprietary/vendor/lib64/libdeccfg.so",
+      "sha256": "2a51435eb0fba45b9af054f35de47e50c374f121c8810b35d47d64fd310bd9a8"
+    },
+    {
+      "path": "proprietary/vendor/lib64/libdlbdsservice.so",
+      "sha256": "2f9d4500a8da5661656fd55a58e3bf55874449dfa193cca8a4c3042caba39b9e"
+    },
+    {
+      "path": "proprietary/vendor/lib64/libdlbpreg.so",
+      "sha256": "033d6bd1428180a38047fe26827abea0f9cb093c2cde369b04cb882be0c38994"
+    },
+    {
+      "path": "proprietary/vendor/lib64/libspatializerparamstorage.so",
+      "sha256": "6b839d1793930fed6da6a36c163be1f0e1b24322105af7ae73526c508c4d9b88"
+    },
+    {
+      "path": "proprietary/vendor/lib64/soundfx/libdlbvol.so",
+      "sha256": "301f7b7caeba748204fe8911e0757d557fb47ff40481af5266ed206fc7c8261b"
+    },
+    {
+      "path": "proprietary/vendor/lib64/soundfx/libswdap.so",
+      "sha256": "59d412da3a6ef9871801605355a4bbdeea106858dfd1d423188072086046cc7e"
+    },
+    {
+      "path": "proprietary/vendor/lib64/soundfx/libswgamedap.so",
+      "sha256": "fc13739ce7a61e811d64e7f3c600456605e42e3cebfab64d5a4ab8679cb34302"
+    },
+    {
+      "path": "proprietary/vendor/lib64/soundfx/libswspatializer.so",
+      "sha256": "bdcdac97f718e1976c7b30726daa46e1e81a81ffa3c1553c0484f35977bd0c80"
+    },
+    {
+      "path": "proprietary/vendor/lib64/soundfx/libswvqe.so",
+      "sha256": "5c8635f63979f98ae952a89e4989f45a683c714c6329bb2c8b359db8fd0b25d0"
+    },
+    {
+      "path": "proprietary/vendor/lib64/vendor.dolby.hardware.dms@2.0-impl.so",
+      "sha256": "3954041f531365b1416585a3bb7a0de9f116d566fb91466683d05aa13cec9620"
+    },
+    {
+      "path": "proprietary/vendor/lib64/vendor.dolby.hardware.dms@2.0.so",
+      "sha256": "983265f7e6fc9004b87a62a4f38b64f3e77b54acc3e24c3609e73df33d8d40aa"
+    }
+  ],
+  "notes": [
+    "Pong files are imported byte-for-byte.",
+    "The old prebuilt Codec2 host is replaced by the source HIDL 1.2 host.",
+    "The former ARM32 DAP donor and its stack fix remain in backup history only."
+  ]
+}

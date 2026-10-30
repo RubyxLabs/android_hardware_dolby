@@ -4,6 +4,8 @@
      SPDX-License-Identifier: Apache-2.0
 -->
 <resources>
+    <!-- Initial user choice; an explicit saved setting always wins. -->
+    <bool name="dolby_enabled_by_default">true</bool>
 
     <!-- Whether stereo widening levels are supported -->
     <bool name="dolby_stereo_widening_supported">true</bool>

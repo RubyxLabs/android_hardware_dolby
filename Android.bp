@@ -4,6 +4,27 @@
 
 soong_namespace {}
 
+// Private v33 symbols keep legacy AHandler/ALooper objects out of the current
+// platform foundation ABI, including calls made from the compatibility DSO.
+cc_prebuilt_library_shared {
+    name: "libstagefright_foundation_dolby",
+    vendor: true,
+    compile_multilib: "64",
+    strip: {
+        none: true,
+    },
+    srcs: ["proprietary/vendor/lib64/libstagefright_foundation_dolby.so"],
+    shared_libs: [
+        "libc++",
+        "libcutils",
+        "liblog",
+        "libutils",
+        "libc",
+        "libm",
+        "libdl",
+    ],
+}
+
 cc_prebuilt_library_shared {
     name: "libcodec2_soft_ac4dec",
     owner: "xiaomi",
@@ -27,7 +48,7 @@ cc_prebuilt_library_shared {
         "libcutils",
         "liblog",
         "libsfplugin_ccodec_utils",
-        "libstagefright_foundation",
+        "libstagefright_foundation_dolby",
         "libcodec2_store_dolby",
         "libc++",
         "libc",
@@ -59,7 +80,7 @@ cc_prebuilt_library_shared {
         "libcutils",
         "liblog",
         "libsfplugin_ccodec_utils",
-        "libstagefright_foundation",
+        "libstagefright_foundation_dolby",
         "libcodec2_store_dolby",
         "libc++",
         "libc",
@@ -85,7 +106,7 @@ cc_prebuilt_library_shared {
         "libutils",
         "libcutils",
         "liblog",
-        "libstagefright_foundation-v33",
+        "libstagefright_foundation_dolby",
         "libc++",
         "libc",
         "libm",
@@ -175,7 +196,7 @@ cc_prebuilt_library_shared {
     shared_libs: [
         "libutils",
         "libcutils",
-        "libstagefright_foundation",
+        "libstagefright_foundation_dolby",
         "liblog",
         "libxml2",
         "libcrypto",
@@ -205,7 +226,7 @@ cc_prebuilt_library_shared {
         "libutils",
         "libcutils",
         "libaudioutils",
-        "libstagefright_foundation",
+        "libstagefright_foundation_dolby",
         "libc++",
         "libc",
         "libm",
@@ -229,7 +250,7 @@ cc_prebuilt_library_shared {
         "libutils",
         "libcutils",
         "libaudioutils",
-        "libstagefright_foundation",
+        "libstagefright_foundation_dolby",
         "libdlbpreg",
         "vendor.dolby.hardware.dms@2.0",
         "libc++",
@@ -280,7 +301,7 @@ cc_prebuilt_library_shared {
         "libaudioutils",
         "libdapparamstorage",
         "libhidlbase",
-        "libstagefright_foundation",
+        "libstagefright_foundation_dolby",
         "libdlbpreg",
         "vendor.dolby.hardware.dms@2.0",
         "libc++",
@@ -336,7 +357,7 @@ cc_prebuilt_library_shared {
         "libdapparamstorage",
         "libspatializerparamstorage",
         "libhidlbase",
-        "libstagefright_foundation",
+        "libstagefright_foundation_dolby",
         "libdlbpreg",
         "vendor.dolby.hardware.dms@2.0",
         "libc++",
@@ -431,7 +452,7 @@ cc_prebuilt_binary {
     init_rc: ["proprietary/vendor/etc/init/vendor.dolby.hardware.dms@2.0-service.rc"],
     vintf_fragments: ["configs/vintf/vendor.dolby.hardware.dms@2.0-service.xml"],
     shared_libs: [
-        "libstagefright_foundation-v33",
+        "libstagefright_foundation_dolby",
         "liblog",
         "libutils",
         "libhidlbase",

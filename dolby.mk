@@ -34,7 +34,7 @@ PRODUCT_PACKAGES += \
     libswvqe \
     vendor.dolby.hardware.dms@2.0 \
     vendor.dolby.hardware.dms@2.0-impl \
-    libstagefright_foundation-v33.vendor
+    libstagefright_foundation_dolby
 
 PRODUCT_COPY_FILES += \
     $(DOLBY_PATH)/configs/audio/audio_effects.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_effects.xml \

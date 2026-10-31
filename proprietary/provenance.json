@@ -6,7 +6,8 @@
   "files": [
     {
       "path": "proprietary/vendor/bin/hw/vendor.dolby.hardware.dms@2.0-service",
-      "sha256": "9be9e9a7da25834ecf6f9ec9aa63e7eb686b8e368784436cd4c5b8484d08a3fe"
+      "sha256": "05554377a3827d78845b357f002ea99e131e5191e121f14c2d021775c6c92d9f",
+      "upstream_sha256": "9be9e9a7da25834ecf6f9ec9aa63e7eb686b8e368784436cd4c5b8484d08a3fe"
     },
     {
       "path": "proprietary/vendor/etc/init/vendor.dolby.hardware.dms@2.0-service.rc",
@@ -14,19 +15,23 @@
     },
     {
       "path": "proprietary/vendor/lib64/libcodec2_soft_ac4dec.so",
-      "sha256": "1f285a5f27362629cb3689e483e9a73e58b128bd9773355f8aa813982e6ae502"
+      "sha256": "6fec2889f021852648b9c973991b9f8a252b8e3c845ab50c898bc6b27b7bb577",
+      "upstream_sha256": "1f285a5f27362629cb3689e483e9a73e58b128bd9773355f8aa813982e6ae502"
     },
     {
       "path": "proprietary/vendor/lib64/libcodec2_soft_ddpdec.so",
-      "sha256": "b81d25317f8ee904e685b738e34d1ec4230e349f8de23d828c48b84ff96d46c1"
+      "sha256": "1c6afef19b47e53308c39dc42aa7a15ad456d2e0bf1b192a33adb7b24aea5212",
+      "upstream_sha256": "b81d25317f8ee904e685b738e34d1ec4230e349f8de23d828c48b84ff96d46c1"
     },
     {
       "path": "proprietary/vendor/lib64/libcodec2_soft_dolby.so",
-      "sha256": "11d8237bf7617bcd9244a17979a44f11935d793f0e0b2b077eed12b0fe95bd7d"
+      "sha256": "0bd3033a8351c35f9dd7fa1ceec75a165e9900c61ebc5ddf08d46f87f47df567",
+      "upstream_sha256": "11d8237bf7617bcd9244a17979a44f11935d793f0e0b2b077eed12b0fe95bd7d"
     },
     {
       "path": "proprietary/vendor/lib64/libcodec2_store_dolby.so",
-      "sha256": "2bbc2dbaa5f05dde330b44df405f5435e5c7dd43237ce5b164e09aec2d10580e"
+      "sha256": "ba97ec147c5ea6cd2366f8bfd3d7a13496121ca320178d973bf2e48bd7b7f24b",
+      "upstream_sha256": "2bbc2dbaa5f05dde330b44df405f5435e5c7dd43237ce5b164e09aec2d10580e"
     },
     {
       "path": "proprietary/vendor/lib64/libdapparamstorage.so",
@@ -38,23 +43,28 @@
     },
     {
       "path": "proprietary/vendor/lib64/libdlbdsservice.so",
-      "sha256": "2f9d4500a8da5661656fd55a58e3bf55874449dfa193cca8a4c3042caba39b9e"
+      "sha256": "88c4f5cb7f10e3b8449a707e2c71013e1f3cea91e1897b2fda27c9481379cf15",
+      "upstream_sha256": "2f9d4500a8da5661656fd55a58e3bf55874449dfa193cca8a4c3042caba39b9e"
     },
     {
       "path": "proprietary/vendor/lib64/libdlbpreg.so",
-      "sha256": "033d6bd1428180a38047fe26827abea0f9cb093c2cde369b04cb882be0c38994"
+      "sha256": "be6be5aefa09cc4ad027542aca3e0dd20cae720f3a96999f0fe550a9ebf5e06f",
+      "upstream_sha256": "033d6bd1428180a38047fe26827abea0f9cb093c2cde369b04cb882be0c38994"
     },
     {
       "path": "proprietary/vendor/lib64/libspatializerparamstorage.so",
-      "sha256": "6b839d1793930fed6da6a36c163be1f0e1b24322105af7ae73526c508c4d9b88"
+      "sha256": "1f2d8c25cec4c52481b28a0e6263709476e2af7c9b62529f1070db7df4fa9735",
+      "upstream_sha256": "6b839d1793930fed6da6a36c163be1f0e1b24322105af7ae73526c508c4d9b88"
     },
     {
       "path": "proprietary/vendor/lib64/soundfx/libdlbvol.so",
-      "sha256": "301f7b7caeba748204fe8911e0757d557fb47ff40481af5266ed206fc7c8261b"
+      "sha256": "3508b0f09e5db3729b1fa1703247b3084d0233dc66f2f3a4e9efcfc7678f5dce",
+      "upstream_sha256": "301f7b7caeba748204fe8911e0757d557fb47ff40481af5266ed206fc7c8261b"
     },
     {
       "path": "proprietary/vendor/lib64/soundfx/libswdap.so",
-      "sha256": "59d412da3a6ef9871801605355a4bbdeea106858dfd1d423188072086046cc7e"
+      "sha256": "d75684c2797392226bc3e18bb69bab77996dad5c76c4b6384e9f80bb96a531e7",
+      "upstream_sha256": "59d412da3a6ef9871801605355a4bbdeea106858dfd1d423188072086046cc7e"
     },
     {
       "path": "proprietary/vendor/lib64/soundfx/libswgamedap.so",
@@ -62,7 +72,8 @@
     },
     {
       "path": "proprietary/vendor/lib64/soundfx/libswspatializer.so",
-      "sha256": "bdcdac97f718e1976c7b30726daa46e1e81a81ffa3c1553c0484f35977bd0c80"
+      "sha256": "68a1ad09721b6a4015731acf96f8ab59b71349ef0dea788ea0b8e98305d5701b",
+      "upstream_sha256": "bdcdac97f718e1976c7b30726daa46e1e81a81ffa3c1553c0484f35977bd0c80"
     },
     {
       "path": "proprietary/vendor/lib64/soundfx/libswvqe.so",
@@ -74,12 +85,24 @@
     },
     {
       "path": "proprietary/vendor/lib64/vendor.dolby.hardware.dms@2.0.so",
-      "sha256": "983265f7e6fc9004b87a62a4f38b64f3e77b54acc3e24c3609e73df33d8d40aa"
+      "sha256": "45c76f818c835ef641c209093d88ad36a075491722cbb3d4b6b051a5410ac886",
+      "upstream_sha256": "983265f7e6fc9004b87a62a4f38b64f3e77b54acc3e24c3609e73df33d8d40aa"
     }
   ],
   "notes": [
-    "Pong files are imported byte-for-byte.",
+    "Unmodified files retain Pong bytes; upstream_sha256 records the original bytes of patched ELF files.",
     "The old prebuilt Codec2 host is replaced by the source HIDL 1.2 host.",
-    "The former ARM32 DAP donor and its stack fix remain in backup history only."
-  ]
+    "The former ARM32 DAP donor and its stack fix remain in backup history only.",
+    "tools/isolate-foundation.py reproducibly isolates v33 exports and matching Dolby references without moving existing load segments or changing symbol indices.",
+    "Executable code, factory names and Android packed relocation payloads are preserved."
+  ],
+  "foundation_compat": {
+    "source": "hardware/lineage/compat/vndk/v33/arm64/libstagefright_foundation-v33.so",
+    "source_sha256": "04dca108a8481752f564b38f41702b70763c48520f39b7bb1ac766eca55ddbbe",
+    "path": "proprietary/vendor/lib64/libstagefright_foundation_dolby.so",
+    "sha256": "b815b9cf46e582d218fdffcb08dd48dfd580bb6c0f3b51b5c4192a4b04c177f4",
+    "symbol_prefix": "__dolby_v33_",
+    "symbol_count": 503,
+    "symbol_map_sha256": "7c5c0b5a7acbca077e736d4c9f34b3f70c91518b465cfce29f78dd45b28fbae0"
+  }
 }

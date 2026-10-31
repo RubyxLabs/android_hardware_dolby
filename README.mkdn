@@ -6,8 +6,9 @@ DAX3_3.7.0.8_r1 backend, including its real Android Spatializer and Codec2
 AC-3, E-AC-3/JOC and AC-4 decoders. The pinned upstream is
 [Pong Development](https://github.com/Pong-Development/hardware_dolby) at
 `75c39aca2d6f3392519d65da0e6823217c8297ad`.
-All 16 native libraries and the DMS executable retain their upstream bytes;
-`proprietary/provenance.json` records their SHA-256 identities.
+`proprietary/provenance.json` records the upstream and installed SHA-256
+identities of all 16 native libraries and the DMS executable, along with the
+private foundation compatibility library.
 
 Integration
 -----------
@@ -18,8 +19,19 @@ duplicate device Dolby modules, app, XML tuning and policy. DMS and the
 source Codec2 host install their own init and VINTF fragments. The Codec2
 store uses HIDL 1.2 instance `default1`, alongside the existing MediaTek store.
 The host uses current HAL headers instead of the upstream prebuilt wrapper.
-The existing Lineage `libstagefright_foundation-v33.vendor` compatibility
-module is used without modifying framework sources.
+The native backend uses a private copy of Lineage's v33 foundation library.
+Its 503 dynamic exports and matching references in Dolby binaries carry a
+private symbol prefix. Changing only DT_NEEDED is insufficient: the current
+platform foundation is also loaded by the source host, and symbol interposition
+can route legacy AHandler/ALooper objects into incompatible implementations.
+The platform and shared Lineage compatibility modules remain untouched.
+
+`python3 hardware/dolby/tools/isolate-foundation.py` verifies or reproduces
+these fixups from the pinned Pong inputs and Lineage v33 library. Input and
+output hashes are checked before files are replaced. The tool preserves
+existing load mappings, symbol indices, executable code, factory names and
+Android packed relocations; it appends read-only lookup metadata. It does not
+compile or execute Android code.
 
 MediaTek's primary HAL and microphone preprocessing remain in one 32-bit
 process. `android.hardware.audio.service.rubyx` retains the stock core,
